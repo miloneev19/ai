@@ -1,0 +1,762 @@
+AI_Practical
+
+--------------------------------------------TSP----------------------------------------------------------- 
+
+logic.java
+import java.util.ArrayList;
+
+public class logic {
+
+    public void createAllPossiblePaths(int[][] matt){
+        for (int i = 0; i < matt.length; i++) {
+            tsp(matt, i);
+        }
+    }
+
+    public void tsp(int[][] matt, int startNode) {
+        int numNodes = matt.length;
+        ArrayList<Integer> visitedNodes = new ArrayList<>();
+        int[] route = new int[numNodes + 1];
+        route[0] = startNode ;
+        visitedNodes.add(startNode);
+
+        int currentNode = startNode;
+        int totalCost = 0;
+        while (visitedNodes.size() < numNodes) {
+            int nextNode = -1;
+            int minCost = Integer.MAX_VALUE;
+            for (int i = 0; i < numNodes; i++) {
+                if (!visitedNodes.contains(i) && matt[currentNode][i] != -1 && matt[currentNode][i] < minCost) {
+                    minCost = matt[currentNode][i];
+                    nextNode = i;
+                }
+            }
+            if (nextNode != -1) {
+                visitedNodes.add(nextNode);
+                route[visitedNodes.size() - 1] = nextNode;
+                totalCost += minCost;
+                currentNode = nextNode;
+            } else {
+
+                break;
+            }
+        }
+
+        // Add return to the start node
+        route[route.length - 1] = startNode;
+        totalCost += matt[currentNode][startNode]; // Cost to return to start node
+
+        // Print the route
+        System.out.println("TSP Route:");
+        for (int i = 0; i < route.length; i++) {
+            System.out.print(route[i] + " ");
+        }
+        System.out.println();
+        System.out.println("Total Cost: " + totalCost);
+    }
+}
+
+main.java
+public class Main {
+    public static void main(String[] args) {
+
+        logic obj =  new logic();
+
+
+            int n;
+            int[][] matt = {
+                    { -1, 10, 15, 20 },
+                    { 10, -1, 35, 25 },
+                    { 15, 35, -1, 30 },
+                    { 20, 25, 30, -1 }
+            };
+
+
+
+        obj.createAllPossiblePaths(matt);
+
+    }
+}
+
+
+----------------------------------------------TowerOfHanoi-------------------------------------------------
+
+tower.java
+import java.util.Stack;
+
+public class Tower {
+    private char name;
+    private Stack<Integer> disks;
+
+    public Tower(char name) {
+        this.name = name;
+        this.disks = new Stack<>();
+    }
+
+    public void pushDisk(int disk) {
+        disks.push(disk);
+    }
+
+    public int popDisk() {
+        return disks.pop();
+    }
+
+    public boolean isEmpty() {
+        return disks.isEmpty();
+    }
+
+    public char getName() {
+        return name;
+    }
+
+    public void print() {
+        System.out.print(name + ": ");
+        for (int i = disks.size() - 1; i >= 0; i--) {
+            System.out.print(disks.get(i) + " ");
+        }
+        System.out.println();
+    }
+}
+
+hanoihanoi.java
+public class hanoihanoi {
+    public static void towerOfHanoi(int n, Tower source, Tower destination, Tower auxiliary) {
+        if (n == 1) {
+            int disk = source.popDisk();
+            destination.pushDisk(disk);
+            System.out.println("Move disk " + disk + " from " + source.getName() + " to " + destination.getName());
+            printTowers(source, destination, auxiliary);
+            return;
+        }
+        // Move top n-1 disks from source to auxiliary using destination as auxiliary
+        towerOfHanoi(n-1, source, auxiliary, destination);
+        // Move the remaining disk from source to destination
+        int disk = source.popDisk();
+        destination.pushDisk(disk);
+        System.out.println("Move disk " + disk + " from " + source.getName() + " to " + destination.getName());
+        printTowers(source, destination, auxiliary);
+        // Move n-1 disks from auxiliary to destination using source as auxiliary
+        towerOfHanoi(n-1, auxiliary, destination, source);
+    }
+
+    public static void printTowers(Tower source, Tower destination, Tower auxiliary) {
+        source.print();
+        destination.print();
+        auxiliary.print();
+        System.out.println("------");
+    }
+}
+
+
+main.java
+public class Main {
+    public static void main(String[] args){
+        int n = 3; // Number of disks
+
+        hanoihanoi hanoi = new hanoihanoi();
+
+        Tower source = new Tower('A'); // Source tower
+        Tower destination = new Tower('C'); // Destination tower
+        Tower auxiliary = new Tower('B'); // Auxiliary tower
+
+        // Initialize source tower with disks
+        for (int i = n; i >= 1; i--) {
+            source.pushDisk(i);
+        }
+
+        System.out.println("Initial State:");
+        hanoi.printTowers(source, destination, auxiliary);
+
+        System.out.println("Steps to solve Tower of Hanoi problem with " + n + " disks:");
+        hanoi.towerOfHanoi(n, source, destination, auxiliary);
+    }
+}
+
+
+----------------------------------------8 puzzle-----------------------------------------------------------
+python 
+from collections import deque
+
+def get_user_input(prompt):
+    """Helper function to get user input as a tuple of integers"""
+    user_input = input(prompt)
+    return tuple(map(int, user_input.split()))
+
+def find_blank(state):
+    """Find the index of the blank tile"""
+    return state.index(0)
+
+def swap(state, i, j):
+    """Swap the tiles at indices i and j"""
+    new_state = list(state)
+    new_state[i], new_state[j] = new_state[j], new_state[i]
+    return tuple(new_state)
+
+def get_neighbors(state):
+    """Get the possible neighbor states"""
+    neighbors = []
+    blank = find_blank(state)
+    row, col = divmod(blank, 3)
+
+    # Check left neighbor
+    if col > 0:
+        neighbors.append(swap(state, blank, blank - 1))
+
+    # Check right neighbor
+    if col < 2:
+        neighbors.append(swap(state, blank, blank + 1))
+
+    # Check up neighbor
+    if row > 0:
+        neighbors.append(swap(state, blank, blank - 3))
+
+    # Check down neighbor
+    if row < 2:
+        neighbors.append(swap(state, blank, blank + 3))
+
+    return neighbors
+
+def manhattan_distance(state, goal_state):
+    """Calculate the Manhattan distance heuristic"""
+    distance = 0
+    for i, value in enumerate(state):
+        if value != 0:
+            row, col = divmod(i, 3)
+            goal_row, goal_col = divmod(goal_state.index(value), 3)
+            distance += abs(row - goal_row) + abs(col - goal_col)
+    return distance
+
+def solve_puzzle(initial_state, goal_state):
+    """Solve the 8-puzzle using the A* algorithm"""
+    queue = deque([(manhattan_distance(initial_state, goal_state), initial_state, 0, None)])
+    visited = set()
+    while queue:
+        heuristic, state, moves, parent = queue.popleft()
+        if state == goal_state:
+            path = []
+            current_state = state
+            while parent is not None:
+                path.append(current_state)
+                current_state, moves, parent = parent
+            path.reverse()
+            print("Solution found in", moves, "moves:")
+            for i, state in enumerate(path):
+                print(f"Step {i + 1}:")
+                for row in range(3):
+                    print(" ".join(str(tile) for tile in state[row * 3:(row + 1) * 3]))
+                print()
+            return path, moves
+
+        if state not in visited:
+            visited.add(state)
+            for neighbor in get_neighbors(state):
+                new_moves = moves + 1
+                priority = new_moves + manhattan_distance(neighbor, goal_state)
+                queue.append((priority, neighbor, new_moves, (state, moves, parent)))
+
+    return None, 0
+
+# Get input from the user
+initial_state = get_user_input("Enter the initial state (e.g., 1 2 3 4 5 6 7 0 8): ")
+goal_state = get_user_input("Enter the goal state (e.g., 0 1 2 3 4 5 6 7 8): ")
+
+# Solve the puzzle
+path, moves = solve_puzzle(initial_state, goal_state)
+
+if not path:
+    print("No solution found.")
+
+
+-----------------------------------------------TicTacToe---------------------------------------------------
+
+layout.java
+import java.util.Scanner;
+
+public class layout {
+    private char[][] board = new char[3][3];
+    Scanner sc = new Scanner(System.in);
+    char currentPlayer;
+
+    public layout() {
+        currentPlayer = 'X';
+        initializeBoard();
+    }
+
+    private void initializeBoard() {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                board[i][j] = ' ';
+            }
+        }
+    }
+
+    public void printBoard() {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                System.out.print(board[i][j]);
+            }
+            System.out.println();
+        }
+    }
+
+    public boolean isValidMove(int row, int col) {
+        if (board[row][col] == ' ')
+            return true;
+        else
+            return false;
+    }
+
+    // Make a move
+    public void switchPlayer() {
+        if (currentPlayer == 'X') {
+            currentPlayer = 'O';
+        } else {
+            currentPlayer = 'X';
+        }
+    }
+
+    // Check for a win
+    public boolean checkWin() {
+        // Rows, columns
+        for (int i = 0; i < 3; i++) {
+            if (board[i][0] != ' ' && board[i][0] == board[i][1] && board[i][0] == board[i][2]) {
+                return true; // Row win
+            }
+            if (board[0][i] != ' ' && board[0][i] == board[1][i] && board[0][i] == board[2][i]) {
+                return true; // Column win
+            }
+        }
+        // Diagonal win
+        if (board[0][0] != ' ' && board[0][0] == board[1][1] && board[0][0] == board[2][2]) {
+            return true;
+        }
+        if (board[0][2] != ' ' && board[0][2] == board[1][1] && board[0][2] == board[2][0]) {
+            return true;
+        }
+        return false;
+    }
+
+    // Check if the board is full
+    public boolean isBoardFull() {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == ' ') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Minimax algorithm
+    private int minimax(char player) {
+        if (checkWin()) {
+            if (player == 'O')
+                return 1;
+            else
+                return -1;
+        } else if (isBoardFull()) {
+            return 0;
+        }
+
+        if (player == 'O') {
+            int bestScore = Integer.MIN_VALUE;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    if (board[i][j] == ' ') {
+                        board[i][j] = player;
+                        bestScore = Math.max(bestScore, minimax('X'));
+                        board[i][j] = ' ';
+                    }
+                }
+            }
+            return bestScore;
+        } else {
+            int bestScore = Integer.MAX_VALUE;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    if (board[i][j] == ' ') {
+                        board[i][j] = player;
+                        bestScore = Math.min(bestScore, minimax('O'));
+                        board[i][j] = ' ';
+                    }
+                }
+            }
+            return bestScore;
+        }
+    }
+
+    // Find the best move for the computer
+    private int[] findBestMove() {
+        int bestScore = Integer.MIN_VALUE;
+        int[] move = new int[2];
+        move[0] = -1;
+        move[1] = -1;
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == ' ') {
+                    board[i][j] = 'O';
+                    int score = minimax('X');
+                    board[i][j] = ' ';
+                    if (score > bestScore) {
+                        bestScore = score;
+                        move[0] = i;
+                        move[1] = j;
+                    }
+                }
+            }
+        }
+        return move;
+    }
+
+    // Computer makes a move
+    public void computerMove() {
+        int[] move = findBestMove();
+        board[move[0]][move[1]] = 'O';
+    }
+
+    // Game play
+    public void gamePlay() {
+        while (isBoardFull() != true || checkWin() != true) {
+            System.out.println("Player " + currentPlayer + "'s turn.");
+
+            if (currentPlayer == 'X') {
+                System.out.print("Enter row and column (0-2): ");
+                int row = sc.nextInt();
+                int col = sc.nextInt();
+                if (isValidMove(row, col)) {
+                    board[row][col] = currentPlayer;
+                } else {
+                    System.out.println("Invalid move. Try again.");
+                    continue;
+                }
+            } else {
+                computerMove();
+            }
+
+            if (checkWin()) {
+                System.out.println("Player " + currentPlayer + " wins!");
+                break;
+            } else if (isBoardFull()) {
+                System.out.println("It's a draw!");
+                break;
+            } else {
+                switchPlayer();
+            }
+
+            System.out.println("Current board:");
+            printBoard();
+        }
+    }
+
+}
+
+main.java
+
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        layout game = new layout();
+        game.gamePlay();
+
+    }
+
+}
+----------------------------------------------NLP---------------------------------------------------------
+
+!pip install nltk 
+import nltk 
+nltk.download("punkt")
+nltk.download("stopwords")
+from nltk import sent_tokenize,word_tokenize
+from nltk.corpus import stopwords
+stopwords = stopwords.words("english")    
+sent = "I will walk 500 miles and I would walk 500 more , just to be the man who walks a thousand miles to fall down at your door.".lower()
+sent
+sentences = sent_tokenize(sent)
+print(sentences)
+words = word_tokenize(sent)
+print(words)
+print(stopwords)
+for word in words:
+  if word in stopwords:
+    words.remove(word)
+print(words)
+
+from nltk import PorterStemmer
+stemmer = PorterStemmer()
+print(words)
+stemmed_words = [stemmer.stem(word) for word in words] 
+print(stemmed_words)
+from nltk.stem import SnowballStemmer
+snowball_stemmer = SnowballStemmer("english")
+snowball_stemming_result = [snowball_stemmer.stem(word) for word in words]
+print(snowball_stemming_result)
+from collections import Counter
+from nltk import pos_tag
+nltk.download('averaged_perceptron_tagger')
+count_dict = {}
+
+for word in stemmed_words:
+    if word in count_dict:
+        count_dict[word] += 1
+    else:
+        count_dict[word] = 1
+
+print(count_dict)
+
+pos_tagged = pos_tag(stemmed_words)
+print(pos_tagged)
+count = Counter(tag for _ , tag in pos_tagged)
+print(count)
+
+
+---------------------------------8 puzzle cpp------------------------------------------------------------
+#include<iostream>
+#include <unistd.h>
+// #include <windows.h>
+using namespace std;
+// int input[3][3],output[3][3];
+int temp_arr[3][3];
+int compare_arr[3][3]={
+	{0,0,0},
+	{0,0,0},
+	{0,0,0}
+};
+int x,y,x1,Y1;
+void input_Q(int input[3][3],int output[3][3]){
+  	cout<<"Enter the start then End at same location matrix\n";
+  	for (int i = 0; i < 3; i++) {
+  		for (int j = 0; j < 3; j++) {
+  			cout<<"position"<<i<<" "<<j<<"\n";
+  			cin>>input[i][j]>>output[i][j];
+		}
+	}
+}
+void find(int input[3][3],int output[3][3]){
+	for (int i = 0; i < 3; i++) {
+  		for (int j = 0; j < 3; j++) {
+  			if(input[i][j]==0){
+  				x=i;
+  				y=j;
+  			}
+  			if(output[i][j]==0){
+  				x1=i;
+  				Y1=j;
+  			}
+		}
+	}
+}
+void ouput_Q(int in[3][3]){
+	cout<<"\n";
+	for (int i = 0; i < 3; i++) {
+  		for (int j = 0; j < 3; j++) {
+  			cout<<in[i][j]<<" ";
+		}
+		cout<<"\n";
+	}
+	cout<<"\n";
+}
+int compare(int in[3][3],int ot[3][3]){
+	int count=0;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			if(in[i][j]!=ot[i][j]){
+				count++;
+			}
+		}
+		
+	}
+	
+	return count;
+}
+int h_value(int in_x,int in_y,int in[3][3],int ot[3][3]){
+	int arr1[3][3];
+	int arr2[3][3];
+	int arr3[3][3];
+	int arr4[3][3];
+	int h_value_arr[4];
+	if (in[in_x-1][in_y]!=0)
+	{
+		//if(compare_arr[in_x-1][in_y]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				arr1[i][j]=in[i][j];
+				}
+			}
+			int temp;
+			temp=arr1[in_x-1][in_y];
+			arr1[in_x-1][in_y]=arr1[in_x][in_y];
+			arr1[in_x][in_y]=temp;
+			h_value_arr[0]=compare(arr1,ot);
+			ouput_Q(arr1);
+		//}
+
+	}
+	else{
+		h_value_arr[0]=999;
+	}
+	if (in[in_x][in_y-1]!=0)
+	{
+		//if(compare_arr[in_x][in_y-1]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				arr2[i][j]=in[i][j];
+				}
+			}
+			int temp;
+			temp=arr2[in_x][in_y-1];
+			arr2[in_x][in_y-1]=arr2[in_x][in_y];
+			arr2[in_x][in_y]=temp;
+			h_value_arr[1]=compare(arr2,ot);
+			ouput_Q(arr2);
+		//}
+	}
+	else{
+		h_value_arr[1]=999;
+	}
+	if (in[in_x+1][in_y]!=0)
+	{
+		//if(compare_arr[in_x+1][in_y]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				arr3[i][j]=in[i][j];
+				}
+			}
+			int temp;
+			temp=arr3[in_x+1][in_y];
+			arr3[in_x+1][in_y]=arr3[in_x][in_y];
+			arr3[in_x][in_y]=temp;
+			h_value_arr[2]=compare(arr3,ot);
+			ouput_Q(arr3);
+		//}
+	}
+	else{
+		h_value_arr[2]=999;
+	}
+	if (in[in_x][in_y+1]!=0)
+	{
+		//if(compare_arr[in_x][in_y+1]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				arr4[i][j]=in[i][j];
+				}
+			}
+			int temp;
+			temp=arr4[in_x][in_y+1];
+			arr4[in_x][in_y+1]=arr4[in_x][in_y];
+			arr4[in_x][in_y]=temp;
+			h_value_arr[3]=compare(arr4,ot);
+			ouput_Q(arr4);
+		//}
+	}
+	else{
+		h_value_arr[3]=999;
+	}
+	int k=0;
+	int min = h_value_arr[0];
+	for (int i = 1; i < 4; ++i) {
+        if (h_value_arr[i] < min) {
+            min = h_value_arr[i];
+			k=i;
+        }
+    }
+	////jugad
+	if(k==0){
+		if(compare_arr[in_x-1][in_y]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				temp_arr[i][j]=arr1[i][j];
+				}
+			}
+		}
+	}else if (k==1)
+	{
+		if(compare_arr[in_x][in_y-1]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				temp_arr[i][j]=arr2[i][j];
+				}
+			}
+		}
+	}else if (k==2)
+	{
+		if(compare_arr[in_x+1][in_y]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				temp_arr[i][j]=arr3[i][j];
+				}
+			}
+		}
+	}else if (k==3)
+	{
+		if(compare_arr[in_x][in_y+1]!=1){
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+	  				temp_arr[i][j]=arr4[i][j];
+				}
+			}
+		}
+	}
+	/////
+	return min;
+	
+}
+void astar(int g,int h,int f,int in[3][3],int ot[3][3],int x_in,int y_in){
+	if (h>0)
+	{
+		g++;
+		h=h_value(x,y,in,ot);
+		//cout<<h;
+		f=g+h;
+		find(temp_arr,ot);
+		compare_arr[x][y]=1;
+		sleep(2);
+		cout<<"---------------------";
+		cout<<"\nselected!!!"<<"\n";
+		ouput_Q(temp_arr);
+		ouput_Q(compare_arr);
+		cout<<"heuristic value :"<<h<<"\n";
+		cout<<"G value:"<<g<<"\n"<<"F value:"<<f<<"\n";
+		cout<<"---------------------";
+		sleep(3);
+		x_in=x;
+		y_in=y;
+		astar(g,h,f,temp_arr,ot,x_in,y_in);
+	}
+}
+int main() {
+	// input_Q();
+	// ouput_Q(input);
+	int input[3][3]={
+		{2,8,3},
+		{1,0,4},
+		{7,6,5}
+	};
+	int output[3][3]={
+		{1,2,3},
+		{8,0,4},
+		{7,6,5}
+	};
+	
+	// int j=compare(input,output);
+	// cout<<j;
+	
+	find(input,output);
+	compare_arr[x][y]=1;
+	int h=compare(input,output);
+		cout<<"---------------------";
+		cout<<"\nselected!!!"<<"\n";
+		//ouput_Q(temp_arr);
+		ouput_Q(compare_arr);
+		cout<<"heuristic value :"<<h<<"\n";
+		cout<<"G value:"<<0<<"\n"<<"F value:"<<0<<"\n";
+		cout<<"---------------------";
+	astar(0,h,0,input,output,x,y);
+}
+
+     
